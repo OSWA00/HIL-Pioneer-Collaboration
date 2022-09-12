@@ -48,7 +48,16 @@ robot_1_omega = 0.0;
 robot_2_velocity = 0.0;
 robot_2_omega = 0.0;
 
-%% Simulation
+%% Coppelia connection
+% Setup remote connection
+sim=remApi('remoteApi');
+sim.simxFinish(-1);
+clientID=sim.simxStart('127.0.0.1', 19999, true, true, 5000, 5);
+
+if (clientID>-1)
+    disp('Coppelia connected');
+
+    % TODO configure pioneer parameters
 
 % Example publish to topic
 % msg = "70.0";
@@ -56,44 +65,45 @@ robot_2_omega = 0.0;
 % 
 % msg = "90.0";
 % write(mq_client, topic_robot_1_pos_y, msg);
-
-while true
-    %% Robot 1 messages
-    robot_1_vel_msg = read(mq_client, Topic = topic_robot_1_vel);
-    if check_message(robot_1_vel_msg)
-        robot_1_velocity = str2double(robot_1_vel_msg.Data(1));
+    %% Simulation
+    while true
+        % Robot 1 messages
+        robot_1_vel_msg = read(mq_client, Topic = topic_robot_1_vel);
+        if check_message(robot_1_vel_msg)
+            robot_1_velocity = str2double(robot_1_vel_msg.Data(1));
+        end
+        robot_1_omega_msg = read(mq_client, Topic = topic_robot_1_omega);
+        if check_message(robot_1_omega_msg)
+            robot_1_omega = str2double(robot_1_omega_msg.Data(1));
+        end
+    
+        % Robot 2 messages
+        robot_2_vel_msg = read(mq_client, Topic = topic_robot_2_vel);
+        if check_message(robot_2_vel_msg)
+            robot_2_velocity = str2double(robot_2_vel_msg.Data(1));
+        end
+        robot_2_omega_msg = read(mq_client, Topic = topic_robot_2_omega);
+        if check_message(robot_2_omega_msg)
+            robot_2_omega = str2double(robot_2_omega_msg.Data(1));
+        end
+    
+        % TODO send to coppelia
+    
+    %     disp("Robot 1");
+    %     disp("Vel: " + robot_1_velocity);
+    %     disp("Omega: " + robot_1_omega);
+    % 
+    %     disp("Robot 2");
+    %     disp("Vel: " + robot_2_velocity);
+    %     disp("Omega: " + robot_2_omega);
+    
+        pause(1); % Remove on real program
+    
+        % TODO trajectory generation (POSITION_DESIRED)
+        % TODO send current position from COPPELIA (POS)
+    
     end
-    robot_1_omega_msg = read(mq_client, Topic = topic_robot_1_omega);
-    if check_message(robot_1_omega_msg)
-        robot_1_omega = str2double(robot_1_omega_msg.Data(1));
-    end
-
-    %% Robot 2 messages
-    robot_2_vel_msg = read(mq_client, Topic = topic_robot_2_vel);
-    if check_message(robot_2_vel_msg)
-        robot_2_velocity = str2double(robot_2_vel_msg.Data(1));
-    end
-    robot_2_omega_msg = read(mq_client, Topic = topic_robot_2_omega);
-    if check_message(robot_2_omega_msg)
-        robot_2_omega = str2double(robot_2_omega_msg.Data(1));
-    end
-
-    % TODO send to coppelia
-
-%     disp("Robot 1");
-%     disp("Vel: " + robot_1_velocity);
-%     disp("Omega: " + robot_1_omega);
-% 
-%     disp("Robot 2");
-%     disp("Vel: " + robot_2_velocity);
-%     disp("Omega: " + robot_2_omega);
-
-    pause(1); % Remove on real program
-
-    % TODO trajectory generation (POSITION_DESIRED)
-    % TODO send current position from COPPELIA (POS)
-
 end
 
-
+sim.delete();
 clear mq_client;
