@@ -7,9 +7,6 @@
 WiFiClient esp_client;
 PubSubClient client(esp_client);
 
-// long last_message = 0;
-// char message[50];
-// int value = 0;
 float POS = 0.0;         // current position
 float POS_DESIRED = 0.0; // desired position
 
@@ -17,6 +14,7 @@ void init_wifi();
 void init_mqtt();
 void reconnect_mqtt();
 void callback_mqtt(char *topic, byte *message, unsigned int length);
+
 
 void setup()
 {
@@ -36,8 +34,8 @@ void loop()
 
     // TODO CONTROL ALGORITHM
 
-    float velocity_out = POS;
-    float omega_out = POS_DESIRED;
+    float velocity_out = 0.0;
+    float omega_out = 0.0;
 
     char velocity_string[8];
     dtostrf(velocity_out, 1, 2, velocity_string);
