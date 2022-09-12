@@ -7,14 +7,18 @@
 WiFiClient esp_client;
 PubSubClient client(esp_client);
 
-float POS = 0.0;         // current position
-float POS_DESIRED = 0.0; // desired position
+/* Current positionn */
+float POS_X = 0.0;
+float POS_Y = 0.0;
+
+/* Position desired */
+float POS_DES_X = 0.0;
+float POS_DES_Y = 0.0;
 
 void init_wifi();
 void init_mqtt();
 void reconnect_mqtt();
 void callback_mqtt(char *topic, byte *message, unsigned int length);
-
 
 void setup()
 {
@@ -75,8 +79,10 @@ void reconnect_mqtt()
         {
             Serial.println("connected");
             // Subscribe to topics
-            client.subscribe(POS_TOPIC);
-            client.subscribe(POS_DESIRED_TOPIC);
+            client.subscribe(POS_X_TOPIC);
+            client.subscribe(POS_Y_TOPIC);
+            client.subscribe(POS_X_DESIRED_TOPIC);
+            client.subscribe(POS_Y_DESIRED_TOPIC);
         }
         else
         {
@@ -91,22 +97,33 @@ void reconnect_mqtt()
 
 void callback_mqtt(char *topic, byte *message, unsigned int length)
 {
-    Serial.print("Message arrived on topic: ");
-    Serial.print(topic);
-    Serial.print(". Message: ");
+    // Serial.print("Message arrived on topic: ");
+    // Serial.print(topic);
+    // Serial.print(". Message: ");
     String message_temp;
-    for (int i = 0; i < length; i++)
+    // for (int i = 0; i < length; i++)
+    // {
+    //     Serial.print((char)message[i]);
+    //     message_temp += (char)message[i];
+    // }
+
+    if (String(topic) == POS_X_TOPIC)
     {
-        Serial.print((char)message[i]);
-        message_temp += (char)message[i];
-    }
-    if (String(topic) == POS_TOPIC)
-    {
-        POS = message_temp.toFloat();
+        POS_X = message_temp.toFloat();
     }
 
-    if (String(topic) == POS_DESIRED_TOPIC)
+    if (String(topic) == POS_Y_TOPIC)
     {
-        POS_DESIRED = message_temp.toFloat();
+        POS_Y = message_temp.toFloat();
+    }
+
+    if (String(topic) == POS_X_DESIRED_TOPIC)
+    {
+        POS_DES_X = message_temp.toFloat();
+    }
+
+    if (String(topic) == POS_Y_DESIRED_TOPIC)
+    {
+        POS_DES_Y = message_temp.toFloat();
     }
 }
