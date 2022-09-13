@@ -23,10 +23,10 @@ topic_robot_1_pos_y = "ROBOT_1/POSITION_Y";
 topic_robot_1_pos_des_x = "ROBOT_1/POSITION_DES_X";
 topic_robot_1_pos_des_y = "ROBOT_1/POSITION_DES_Y";
 % Subscribe 
-topic_robot_1_vel = "ROBOT_1/VELOCITY";
-topic_robot_1_omega = "ROBOT_1/OMEGA";
-subscribe(mq_client, topic_robot_1_vel);
-subscribe(mq_client, topic_robot_1_omega);
+topic_robot_1_vel_l = "ROBOT_1/VEL_L";
+topic_robot_1_vel_r = "ROBOT_1/VEL_R";
+subscribe(mq_client, topic_robot_1_vel_l);
+subscribe(mq_client, topic_robot_1_vel_r);
 
 %% Robot 2 mqtt topics
 % Publish 
@@ -35,18 +35,18 @@ topic_robot_2_pos_y = "ROBOT_2/POSITION_Y";
 topic_robot_2_pos_des_x = "ROBOT_2/POSITION_DES_X";
 topic_robot_2_pos_des_y = "ROBOT_2/POSITION_DES_Y";
 % Subscribe
-topic_robot_2_vel = "ROBOT_2/VELOCITY";
-topic_robot_2_omega = "ROBOT_2/OMEGA";
-subscribe(mq_client, topic_robot_2_vel);
-subscribe(mq_client, topic_robot_2_omega);
+topic_robot_2_vel_l = "ROBOT_2/VEL_L";
+topic_robot_2_vel_r = "ROBOT_2/VEL_R";
+subscribe(mq_client, topic_robot_2_vel_l);
+subscribe(mq_client, topic_robot_2_vel_r);
 
 %% Robot 1 control variables
-robot_1_velocity = 0.0;
-robot_1_omega = 0.0;
+robot_1_vel_l_msg = 0.0;
+robot_1_vel_r = 0.0;
 
 %% Robot 2 control variables
-robot_2_velocity = 0.0;
-robot_2_omega = 0.0;
+robot_2_vel_l = 0.0;
+robot_2_vel_r = 0.0;
 
 %% Coppelia connection
 % Setup remote connection
@@ -176,23 +176,23 @@ y0=2-t0*0.2;
         
         
         % Robot 1 messages
-        robot_1_vel_msg = read(mq_client, Topic = topic_robot_1_vel);
-        if check_message(robot_1_vel_msg)
-            robot_1_velocity = str2double(robot_1_vel_msg.Data(1));
+        robot_1_vel_l_msg = read(mq_client, Topic = topic_robot_1_vel_l);
+        if check_message(robot_1_vel_l_msg)
+            robot_1_vel_l = str2double(robot_1_vel_l_msg.Data(1));
         end
-        robot_1_omega_msg = read(mq_client, Topic = topic_robot_1_omega);
-        if check_message(robot_1_omega_msg)
-            robot_1_omega = str2double(robot_1_omega_msg.Data(1));
+        robot_1_vel_r_msg = read(mq_client, Topic = topic_robot_1_vel_r);
+        if check_message(robot_1_vel_r_msg)
+            robot_1_vel_r= str2double(robot_1_vel_r_msg.Data(1));
         end
     
         % Robot 2 messages
-        robot_2_vel_msg = read(mq_client, Topic = topic_robot_2_vel);
-        if check_message(robot_2_vel_msg)
-            robot_2_velocity = str2double(robot_2_vel_msg.Data(1));
+        robot_2_vel_l_msg = read(mq_client, Topic = topic_robot_2_vel_l);
+        if check_message(robot_2_vel_l_msg)
+            robot_2_vel_l = str2double(robot_2_vel_l_msg.Data(1));
         end
-        robot_2_omega_msg = read(mq_client, Topic = topic_robot_2_omega);
-        if check_message(robot_2_omega_msg)
-            robot_2_omega = str2double(robot_2_omega_msg.Data(1));
+        robot_2_vel_r_msg = read(mq_client, Topic = topic_robot_2_vel_r);
+        if check_message(robot_2_vel_r_msg)
+            robot_2_vel = str2double(robot_2_vel_r_msg.Data(1));
         end
     
 
@@ -248,18 +248,18 @@ y0=2-t0*0.2;
         %%%%%% Cambiar los nombres de la velocidad de cada motor
             %% Robot 1
         % Motor izquierdo
-        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,robot_1_vel_l,... 
             sim.simx_opmode_blocking);
         % Motor derecho
-        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,robot_1_vel_r,... 
             sim.simx_opmode_blocking);
     
             % Robot 2
         % Motor izquierdo
-        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,robot1_vr,... 
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,robot_2_vel_l,... 
             sim.simx_opmode_blocking);
         % Motor derecho
-        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,robot_2_vel_r,... 
             sim.simx_opmode_blocking);
     
     %     disp("Robot 1");
