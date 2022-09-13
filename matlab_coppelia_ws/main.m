@@ -79,6 +79,9 @@ if (clientID>-1)
     % Preparar Motor Derecho
     [~, right_robot_2]=sim.simxGetObjectHandle(clientID,...    
         'Pioneer_p3dx_rightMotor',sim.simx_opmode_blocking);
+    
+    [~, bar]=sim.simxGetObjectHandle(clientID,...
+        'Cuboid1',sim.simx_opmode_blocking);
 
     % Inicialización para obtener la posición Robot 1
     [~, Position_Robot_1] = sim.simxGetObjectPosition(clientID,Robot_block_1,-1,...
@@ -101,6 +104,27 @@ if (clientID>-1)
 % msg = "90.0";
 % write(mq_client, topic_robot_1_pos_y, msg);
 
+
+    %CIRCULO
+%------------------------------------------------------------------------
+% [~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[0,0.7,1.3879e-01],sim.simx_opmode_oneshot);
+% [~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0,1.3,1.3879e-01],sim.simx_opmode_oneshot);
+% [~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,1,3],sim.simx_opmode_oneshot);
+%------------------------------------------------------------------------
+
+%SENO
+%------------------------------------------------------------------------
+[~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[-0.19,1.78,1.3879e-01],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,Robot_block_1,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
+
+[~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0.22,2.2,1.3879e-01],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,Robot_block_2,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
+
+[~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,2,3],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,bar,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
+%------------------------------------------------------------------------
+
+
     % Inicializacion de los motores en cada robot
     % Robot 1
     % Motor izquierdo
@@ -118,8 +142,39 @@ if (clientID>-1)
     [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
         sim.simx_opmode_blocking);
 
+
+%CIRCULO
+%------------------------------------------------------------------------
+% t0=0;
+% x0=sin(0.30*(t0));
+% y0=cos(0.30*(t0));
+%------------------------------------------------------------------------
+
+%SENO
+%------------------------------------------------------------------------
+t0=0;
+x0=sin(0.2*t0);
+y0=2-t0*0.2;
+%------------------------------------------------------------------------
+
     %% Simulation
-    while true
+    for i = 1:400
+        
+        %CIRCULO
+        %------------------------------------------------------------------------
+        % t=0.1*(i-1); 
+        % xd=sin(0.3*(t)); %x va de -2m a 2m de forma sinusoidal
+        % yd=cos(0.3*(t)); %y va de 2m a -2m aumentando en 0.1
+        %------------------------------------------------------------------------
+
+        %SENO
+        %------------------------------------------------------------------------
+        t=0.1*(i-1); 
+        xd=sin(0.2*t); %x va de -2m a 2m de forma sinusoidal
+        yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
+        %------------------------------------------------------------------------
+        
+        
         % Robot 1 messages
         robot_1_vel_msg = read(mq_client, Topic = topic_robot_1_vel);
         if check_message(robot_1_vel_msg)
@@ -140,23 +195,6 @@ if (clientID>-1)
             robot_2_omega = str2double(robot_2_omega_msg.Data(1));
         end
     
-        % TODO send the velocity to coppelia (Vl, Vr)
-        %%%%%% Cambiar los nombres de la velocidad de cada motor
-            %% Robot 1
-        % Motor izquierdo
-        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
-            sim.simx_opmode_blocking);
-        % Motor derecho
-        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
-            sim.simx_opmode_blocking);
-    
-            %% Robot 2
-        % Motor izquierdo
-        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,robot1_vr,... 
-            sim.simx_opmode_blocking);
-        % Motor derecho
-        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
-            sim.simx_opmode_blocking);
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Obtner la posición del robot 1
@@ -186,6 +224,43 @@ if (clientID>-1)
             sim.simx_opmode_buffer);
         msg = string(Orientation_Robot_2(3));
         write(mq_client, topic_robot_2_orientation, msg); % Mandar la orientación del robot 2
+        
+        
+        m=(yd-y0)/(xd-x0);
+        mp=-1/m;
+        d=0.3;
+        ang=atan2(-(xd-x0),(yd-y0));
+        dy=d*sin(ang);
+        dx=d*cos(ang);
+        
+        %%%%%%%%%%%%%%%%%%%
+        %Esto es lo que hay que mandar
+        xp1=xd+dx;
+        xp2=xd-dx; 
+        yp1=mp*(xp1-xd)+yd;
+        yp2=mp*(xp2-xd)+yd;
+        %%%%%%%%%%%%%%%%%%%%
+        
+        x0=xd;
+        y0=yd;
+        
+        % TODO send the velocity to coppelia (Vl, Vr)
+        %%%%%% Cambiar los nombres de la velocidad de cada motor
+            %% Robot 1
+        % Motor izquierdo
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
+            sim.simx_opmode_blocking);
+        % Motor derecho
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
+            sim.simx_opmode_blocking);
+    
+            % Robot 2
+        % Motor izquierdo
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,robot1_vr,... 
+            sim.simx_opmode_blocking);
+        % Motor derecho
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
+            sim.simx_opmode_blocking);
     
     %     disp("Robot 1");
     %     disp("Vel: " + robot_1_velocity);
@@ -200,7 +275,7 @@ if (clientID>-1)
         
 
     
-        pause(1); % Remove on real program
+        %pause(1); % Remove on real program
     
         % TODO trajectory generation (POSITION_DESIRED)
         % TODO send current position from COPPELIA (POS)
