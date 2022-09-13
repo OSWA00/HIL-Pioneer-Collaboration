@@ -84,6 +84,7 @@ void reconnect_mqtt()
             client.subscribe(POS_Y_TOPIC);
             client.subscribe(POS_X_DESIRED_TOPIC);
             client.subscribe(POS_Y_DESIRED_TOPIC);
+            client.subscribe(THETA_TOPIC);
         }
         else
         {
@@ -128,6 +129,10 @@ void callback_mqtt(char *topic, byte *message, unsigned int length)
     if (String(topic) == POS_Y_DESIRED_TOPIC)
     {
         POS_DES_Y = message_temp.toFloat();
+    }
+    if (String(topic) == THETA_TOPIC)
+    {
+        THETA = message_temp.toFloat();
     }
 }
 
