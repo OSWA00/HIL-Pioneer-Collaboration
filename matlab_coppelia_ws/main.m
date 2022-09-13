@@ -58,6 +58,41 @@ if (clientID>-1)
     disp('Coppelia connected');
 
     % TODO configure pioneer parameters
+    % Configuración de los Handles
+
+    %% Robot 1
+    [~, Robot_block_1] = sim.simxGetObjectHandle(clientID,...
+        'Pioneer_p3dx', sim.simx_opmode_blocking);
+    % Preparar Motor izquierdo
+    [~, left_robot_1]=sim.simxGetObjectHandle(clientID,...      
+        'Pioneer_p3dx_leftMotor',sim.simx_opmode_blocking); 
+    % Preparar Motor Derecho
+    [~, right_robot_1]=sim.simxGetObjectHandle(clientID,...   
+        'Pioneer_p3dx_rightMotor',sim.simx_opmode_blocking);
+    
+    %% Robot 2
+    [~, Robot_block_2] = sim.simxGetObjectHandle(clientID,...
+        'Pioneer_p3dx', sim.simx_opmode_blocking);
+    % Preparar Motor izquierdo
+    [~, left_robot_2]=sim.simxGetObjectHandle(clientID,...     
+        'Pioneer_p3dx_leftMotor',sim.simx_opmode_blocking); 
+    % Preparar Motor Derecho
+    [~, right_robot_2]=sim.simxGetObjectHandle(clientID,...    
+        'Pioneer_p3dx_rightMotor',sim.simx_opmode_blocking);
+
+    % Inicialización para obtener la posición Robot 1
+    [~, Position_Robot_1] = sim.simxGetObjectPosition(clientID,Robot_block_1,-1,...
+        sim.simx_opmode_streaming);
+    % Inicialización para obtener la posición Robot 2
+    [~, Position_Robot_2] = sim.simxGetObjectPosition(clientID,Robot_block_2,-1,...
+        sim.simx_opmode_streaming);
+
+    % Inicialización para obtener la orientación Robot 1
+    [~, Orientation_Robot_1] = sim.simxGetObjectOrientation(clientID,Robot_block_1,-1,...
+        sim.simx_opmode_streaming);
+    % Inicialización para obtener la orientación Robot 2
+    [~, Orientation_Robot_2] = sim.simxGetObjectOrientation(clientID,Robot_block_2,-1,...
+        sim.simx_opmode_streaming);
 
 % Example publish to topic
 % msg = "70.0";
@@ -65,6 +100,24 @@ if (clientID>-1)
 % 
 % msg = "90.0";
 % write(mq_client, topic_robot_1_pos_y, msg);
+
+    % Inicializacion de los motores en cada robot
+    % Robot 1
+    % Motor izquierdo
+    [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
+        sim.simx_opmode_blocking);
+    % Motor derecho
+    [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
+        sim.simx_opmode_blocking);
+
+    % Robot 2
+    % Motor izquierdo
+    [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,0,... 
+        sim.simx_opmode_blocking);
+    % Motor derecho
+    [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
+        sim.simx_opmode_blocking);
+
     %% Simulation
     while true
         % Robot 1 messages
@@ -87,7 +140,52 @@ if (clientID>-1)
             robot_2_omega = str2double(robot_2_omega_msg.Data(1));
         end
     
-        % TODO send to coppelia
+        % TODO send the velocity to coppelia (Vl, Vr)
+        %%%%%% Cambiar los nombres de la velocidad de cada motor
+            %% Robot 1
+        % Motor izquierdo
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
+            sim.simx_opmode_blocking);
+        % Motor derecho
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
+            sim.simx_opmode_blocking);
+    
+            %% Robot 2
+        % Motor izquierdo
+        [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,robot1_vr,... 
+            sim.simx_opmode_blocking);
+        % Motor derecho
+        [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
+            sim.simx_opmode_blocking);
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Obtner la posición del robot 1
+        [~, Position_Robot_1]=sim.simxGetObjectPosition(clientID,Robot_block_1,-1,...
+            sim.simx_opmode_buffer);
+        msg = string(Position_Robot_1(1));
+        write(mq_client, topic_robot_1_pos_x, msg);  % Mandar la posición en X del robot 1
+        msg = string(Position_Robot_1(2));
+        write(mq_client, topic_robot_1_pos_y, msg);  % Mandar la posición en Y del robot 1
+
+        % Obtner la posición del robot 2
+        [~, Position_Robot_2]=sim.simxGetObjectPosition(clientID,Robot_block_2,-1,...
+            sim.simx_opmode_buffer);
+        msg = string(Position_Robot_2(1));
+        write(mq_client, topic_robot_2_pos_x, msg);  % Mandar la posición en X del robot 2
+        msg = string(Position_Robot_2(2));
+        write(mq_client, topic_robot_2_pos_y, msg);  % Mandar la posición en Y del robot 2
+
+        % Obtener la orientación del robot 1
+        [~,Orientation_Robot_1] = sim.simxGetObjectOrientation(clientID,Robot_block_1,-1,...
+            sim.simx_opmode_buffer);
+        msg = string(Orientation_Robot_1(3));
+        write(mq_client, topic_robot_1_orientation, msg); % Mandar la oreintación del robot 1
+
+        % Obtener la orientación del robot 2
+        [~,Orientation_Robot_2] = sim.simxGetObjectOrientation(clientID,Robot_block_2,-1,...
+            sim.simx_opmode_buffer);
+        msg = string(Orientation_Robot_2(3));
+        write(mq_client, topic_robot_2_orientation, msg); % Mandar la orientación del robot 2
     
     %     disp("Robot 1");
     %     disp("Vel: " + robot_1_velocity);
@@ -96,6 +194,11 @@ if (clientID>-1)
     %     disp("Robot 2");
     %     disp("Vel: " + robot_2_velocity);
     %     disp("Omega: " + robot_2_omega);
+
+
+        % Obtner la posición de cada uno de los robots
+        
+
     
         pause(1); % Remove on real program
     
