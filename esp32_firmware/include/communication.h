@@ -10,8 +10,8 @@
 #define MQTT_CLIENT_NAME "ROBOT_1"
 
 /* Publish topics */
-#define VEL_TOPIC "ROBOT_1/VELOCITY"
-#define OMEGA_TOPIC "ROBOT_1/OMEGA"
+#define VEL_R_TOPIC "ROBOT_1/VEL_R"
+#define VEL_L_TOPIC "ROBOT_1/VEL_L"
 
 /* Subscribe topics */
 #define POS_X_TOPIC "ROBOT_1/POSITION_X"
