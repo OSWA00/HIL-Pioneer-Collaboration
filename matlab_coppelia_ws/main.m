@@ -147,7 +147,7 @@ if (clientID>-1)
     
     %SENO
     %----------------------------------------------------------------------
-    t0=0;
+    t0=0.001;
     x0=sin(0.2*t0);
     y0=2-t0*0.2;
     %----------------------------------------------------------------------
@@ -176,6 +176,7 @@ if (clientID>-1)
             robot_2_vel_r = str2double(robot_2_vel_r_msg.Data(1));
         end
 
+        disp("MQTT messages received");
         %% Robot 1 velocities
         % Left motor
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
@@ -195,7 +196,7 @@ if (clientID>-1)
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             right_robot_2, robot_2_vel_r,... 
             sim.simx_opmode_blocking);
-
+        disp("Sent velocities to Coppelia");
         %% Trajectory
         %CIRCULO
         %------------------------------------------------------------------------
@@ -222,6 +223,7 @@ if (clientID>-1)
         % Y pose
         msg = string(Position_Robot_1(2));
         write(mqttClient, topic_robot_1_pos_y, msg);
+        
 
         % Theta pose
         [~,Orientation_Robot_1] = sim.simxGetObjectOrientation( ...
@@ -230,6 +232,7 @@ if (clientID>-1)
             sim.simx_opmode_buffer);
         msg = string(Orientation_Robot_1(3));
         write(mqttClient, topic_robot_1_orientation, msg);
+        disp("Sent pose to robot1")
 
         %% Robot 2 pose
         [~, Position_Robot_2]=sim.simxGetObjectPosition(clientID, ...
@@ -250,6 +253,7 @@ if (clientID>-1)
             sim.simx_opmode_buffer);
         msg = string(Orientation_Robot_2(3));
         write(mqttClient, topic_robot_2_orientation, msg);
+        disp("Sent pose to robot2")
         
         %% Collaborative trajectory generation 
         m = ( yd - y0 ) / ( xd - x0 );
@@ -263,13 +267,18 @@ if (clientID>-1)
         %Esto es lo que hay que mandar
         % Robot 1 desired pose 
         xp1 = xd + dx;
-        write(mqttClient, topic_robot_1_pos_des_x, string(xp1));
+        msg = string(xp1);
+        write(mqttClient, topic_robot_1_pos_des_x, msg);
+
         yp1 = mp * ( xp1 - xd) + yd;
-        write(mqttClient, topic_robot_1_pos_des_y, string(yp1));
+        msg = string(yp1);
+        disp(msg);
+        write(mqttClient, topic_robot_1_pos_des_y, msg);
         % Robot 2 desired pose
         xp2=xd-dx; 
         yp2=mp*(xp2-xd)+yd;
         %%%%%%%%%%%%%%%%%%%%
+        disp("Sent desired pose to robot 1");
         
         x0=xd;
         y0=yd;
@@ -279,6 +288,7 @@ if (clientID>-1)
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             left_robot_1, robot_1_vel_l, ... 
             sim.simx_opmode_blocking);
+        disp(robot_1_vel_l);
         % Right motor
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             right_robot_1, robot_1_vel_r,... 
@@ -289,10 +299,12 @@ if (clientID>-1)
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             left_robot_2, robot_2_vel_l,... 
             sim.simx_opmode_blocking);
+        disp(robot_2_vel_l);
         % Right motor
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             right_robot_2, robot_2_vel_r,... 
             sim.simx_opmode_blocking);
+        
     end
 end
 
