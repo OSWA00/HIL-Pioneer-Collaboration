@@ -46,13 +46,11 @@ void loop()
     dtostrf(controller_lineal::velocity_right, 1, 2, vel_r_string);
     client.publish(VEL_R_TOPIC, vel_r_string);
 
-    delay(50);
-
     char vel_l_string[8];
     dtostrf(controller_lineal::velocity_left, 1, 2, vel_l_string);
     client.publish(VEL_L_TOPIC, vel_l_string);
 
-    delay(50);
+    delay(100);
 }
 
 void init_wifi()

@@ -154,7 +154,7 @@ if (clientID>-1)
 
     disp("Starting simulation")
     %% Simulation
-    for i = 1:400
+    for i = 1:200
         %% MQTT messages
         % Robot 1 messages
         robot_1_vel_l_msg = read(mqttClient, Topic = topic_robot_1_vel_l);
@@ -175,6 +175,15 @@ if (clientID>-1)
         if check_message(robot_2_vel_r_msg)
             robot_2_vel_r = str2double(robot_2_vel_r_msg.Data(1));
         end
+        
+        if i==1
+            robot_1_vel_r= 0.1;
+            robot_1_vel_l = 0.1;
+        
+            robot_2_vel_l = 0.1;
+            robot_2_vel_r = 0.1;
+        end
+        
 
         disp("MQTT messages received");
         %% Robot 1 velocities
@@ -207,7 +216,7 @@ if (clientID>-1)
 
         %SENO
         %------------------------------------------------------------------------
-        t=0.1*(i-1); 
+        t=0.1*(i)*2; 
         xd=sin(0.2*t); %x va de -2m a 2m de forma sinusoidal
         yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
         %------------------------------------------------------------------------
@@ -241,6 +250,7 @@ if (clientID>-1)
         % X pose
         msg = string(Position_Robot_2(1));
         write(mqttClient, topic_robot_2_pos_x, msg);
+        disp(Position_Robot_2)
 
         % Y pose
         msg = string(Position_Robot_2(2));
@@ -267,18 +277,18 @@ if (clientID>-1)
         %Esto es lo que hay que mandar
         % Robot 1 desired pose 
         xp1 = xd + dx;
-        msg = string(xp1);
-        write(mqttClient, topic_robot_1_pos_des_x, msg);
+        write(mqttClient, topic_robot_1_pos_des_x, string(xp1));
 
         yp1 = mp * ( xp1 - xd) + yd;
-        msg = string(yp1);
-        disp(msg);
-        write(mqttClient, topic_robot_1_pos_des_y, msg);
+        write(mqttClient, topic_robot_1_pos_des_y, string(yp1));
+        
         % Robot 2 desired pose
         xp2=xd-dx; 
+        write(mqttClient, topic_robot_2_pos_des_x, string(xp2));
+
         yp2=mp*(xp2-xd)+yd;
-        %%%%%%%%%%%%%%%%%%%%
-        disp("Sent desired pose to robot 1");
+        write(mqttClient, topic_robot_2_pos_des_y, string(yp2));
+       
         
         x0=xd;
         y0=yd;
@@ -304,7 +314,16 @@ if (clientID>-1)
         [~] = sim.simxSetJointTargetVelocity(clientID, ...
             right_robot_2, robot_2_vel_r,... 
             sim.simx_opmode_blocking);
-        
+
+        figure(1)
+        scatter(Position_Robot_1(1),Position_Robot_1(2),'o','g')  %Gráfica de la posición del robot
+        hold on
+        scatter(Position_Robot_2(1),Position_Robot_2(2),'o','r')  %Gráfica de la posición del robot
+        scatter(xd,yd,'.','b')  %Gráfica de la posición del robot
+        scatter(xp1,yp1,'.','g')  %Gráfica de la posición del robot
+        scatter(xp2,yp2,'.','r')  %Gráfica de la posición del robot
+        hold on
+        %pause(0.5);
     end
 end
 
