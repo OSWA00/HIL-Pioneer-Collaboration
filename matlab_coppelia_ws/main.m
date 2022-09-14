@@ -22,6 +22,7 @@ topic_robot_1_pos_x = "ROBOT_1/POSITION_X";
 topic_robot_1_pos_y = "ROBOT_1/POSITION_Y";
 topic_robot_1_pos_des_x = "ROBOT_1/POSITION_DES_X";
 topic_robot_1_pos_des_y = "ROBOT_1/POSITION_DES_Y";
+topic_robot_1_orientation = "ROBOT_1/THETA";
 % Subscribe 
 topic_robot_1_vel_l = "ROBOT_1/VEL_L";
 topic_robot_1_vel_r = "ROBOT_1/VEL_R";
@@ -34,6 +35,7 @@ topic_robot_2_pos_x = "ROBOT_2/POSITION_X";
 topic_robot_2_pos_y = "ROBOT_2/POSITION_Y";
 topic_robot_2_pos_des_x = "ROBOT_2/POSITION_DES_X";
 topic_robot_2_pos_des_y = "ROBOT_2/POSITION_DES_Y";
+topic_robot_2_orientation = "ROBOT_2/THETA";
 % Subscribe
 topic_robot_2_vel_l = "ROBOT_2/VEL_L";
 topic_robot_2_vel_r = "ROBOT_2/VEL_R";
@@ -41,7 +43,7 @@ subscribe(mq_client, topic_robot_2_vel_l);
 subscribe(mq_client, topic_robot_2_vel_r);
 
 %% Robot 1 control variables
-robot_1_vel_l_msg = 0.0;
+robot_1_vel_l = 0.0;
 robot_1_vel_r = 0.0;
 
 %% Robot 2 control variables
@@ -72,13 +74,13 @@ if (clientID>-1)
     
     %% Robot 2
     [~, Robot_block_2] = sim.simxGetObjectHandle(clientID,...
-        'Pioneer_p3dx', sim.simx_opmode_blocking);
+        'Pioneer_p3dx#0', sim.simx_opmode_blocking);
     % Preparar Motor izquierdo
     [~, left_robot_2]=sim.simxGetObjectHandle(clientID,...     
-        'Pioneer_p3dx_leftMotor',sim.simx_opmode_blocking); 
+        'Pioneer_p3dx_leftMotor#0',sim.simx_opmode_blocking); 
     % Preparar Motor Derecho
     [~, right_robot_2]=sim.simxGetObjectHandle(clientID,...    
-        'Pioneer_p3dx_rightMotor',sim.simx_opmode_blocking);
+        'Pioneer_p3dx_rightMotor#0',sim.simx_opmode_blocking);
     
     [~, bar]=sim.simxGetObjectHandle(clientID,...
         'Cuboid1',sim.simx_opmode_blocking);
@@ -159,23 +161,7 @@ y0=2-t0*0.2;
 
     %% Simulation
     for i = 1:400
-        
-        %CIRCULO
-        %------------------------------------------------------------------------
-        % t=0.1*(i-1); 
-        % xd=sin(0.3*(t)); %x va de -2m a 2m de forma sinusoidal
-        % yd=cos(0.3*(t)); %y va de 2m a -2m aumentando en 0.1
-        %------------------------------------------------------------------------
-
-        %SENO
-        %------------------------------------------------------------------------
-        t=0.1*(i-1); 
-        xd=sin(0.2*t); %x va de -2m a 2m de forma sinusoidal
-        yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
-        %------------------------------------------------------------------------
-        
-        
-        % Robot 1 messages
+                % Robot 1 messages
         robot_1_vel_l_msg = read(mq_client, Topic = topic_robot_1_vel_l);
         if check_message(robot_1_vel_l_msg)
             robot_1_vel_l = str2double(robot_1_vel_l_msg.Data(1));
@@ -192,8 +178,24 @@ y0=2-t0*0.2;
         end
         robot_2_vel_r_msg = read(mq_client, Topic = topic_robot_2_vel_r);
         if check_message(robot_2_vel_r_msg)
-            robot_2_vel = str2double(robot_2_vel_r_msg.Data(1));
+            robot_2_vel_r = str2double(robot_2_vel_r_msg.Data(1));
         end
+        
+        %CIRCULO
+        %------------------------------------------------------------------------
+        % t=0.1*(i-1); 
+        % xd=sin(0.3*(t)); %x va de -2m a 2m de forma sinusoidal
+        % yd=cos(0.3*(t)); %y va de 2m a -2m aumentando en 0.1
+        %------------------------------------------------------------------------
+
+        %SENO
+        %------------------------------------------------------------------------
+        t=0.1*(i-1); 
+        xd=sin(0.2*t); %x va de -2m a 2m de forma sinusoidal
+        yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
+        %------------------------------------------------------------------------
+        
+        
     
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -279,6 +281,10 @@ y0=2-t0*0.2;
     
         % TODO trajectory generation (POSITION_DESIRED)
         % TODO send current position from COPPELIA (POS)
+
+
+
+
     
     end
 end
