@@ -22,7 +22,7 @@ void init_wifi();
 void init_mqtt();
 void reconnect_mqtt();
 void callback_mqtt(char *topic, byte *message, unsigned int length);
-void pd_controller();
+void pd_controller(float pos_des_x, float pos_des_y, float pos_X, float pos_y, float theta);
 
 void setup()
 {
@@ -40,17 +40,8 @@ void loop()
     }
     client.loop();
 
-    pd_controller();
-
-    char vel_r_string[8];
-    dtostrf(controller_lineal::velocity_right, 1, 2, vel_r_string);
-    client.publish(VEL_R_TOPIC, vel_r_string);
-
-    char vel_l_string[8];
-    dtostrf(controller_lineal::velocity_left, 1, 2, vel_l_string);
-    client.publish(VEL_L_TOPIC, vel_l_string);
-
-    delay(100);
+    pd_controller(POS_DES_X, POS_DES_Y, POS_X, POS_Y, THETA);
+    delay(20);
 }
 
 void init_wifi()
@@ -116,11 +107,13 @@ void callback_mqtt(char *topic, byte *message, unsigned int length)
     if (String(topic) == POS_X_TOPIC)
     {
         POS_X = message_temp.toFloat();
+        Serial.println("POS_X");
     }
 
     if (String(topic) == POS_Y_TOPIC)
     {
         POS_Y = message_temp.toFloat();
+        Serial.println("POS_Y")
     }
 
     if (String(topic) == POS_X_DESIRED_TOPIC)
@@ -138,48 +131,60 @@ void callback_mqtt(char *topic, byte *message, unsigned int length)
     }
 }
 
-void pd_controller()
+void pd_controller(float pos_des_x, float pos_des_y, float pos_x, float pos_y, float theta)
 {
+
+    float velocity_right = 0.0;
+    float velocity_left = 0.0;
+
     // Calculate X and Y error x - x_d
-    float x_error = POS_X - POS_DES_X;
-    float y_error = POS_Y - POS_DES_Y;
+    float x_error = pos_x - pos_des_x;
+    float y_error = pos_y - pos_des_y;
 
     float theta_des = atan2(y_error, x_error);
 
-    controller_theta::error = THETA - theta_des;
+    theta_error = theta - theta_des;
 
-    if (controller_theta::error > PI)
+    if (theta_error > PI)
     {
-        controller_theta::error = controller_theta::error - 2 * PI;
+        theta_error = theta_error - 2 * PI;
     }
-    else if (controller_theta::error < -PI)
+    else if (theta_error < -PI)
     {
-        controller_theta::error = controller_theta::error + 2 * PI;
+        theta_error = theta_error + 2 * PI;
     }
 
-    controller_lineal::error = sqrt(pow(x_error, 2) + pow(y_error, 2));
+    lineal_error = sqrt(pow(x_error, 2) + pow(y_error, 2));
 
     // Proportional controller
-    controller_lineal::u_p = controller_lineal::kp * controller_lineal::error;
-    controller_theta::u_p = -controller_theta::kp * controller_theta::error;
+    lineal_u_p = lineal_kp * lineal_error;
+    theta_u_p = -theta_kp * theta_error;
 
     // Saturation
-    if (controller_lineal::u_p > 1)
+    if (lineal_u_p > 1)
     {
-        controller_lineal::u_p = 1;
+        lineal_u_p = 1;
     }
 
-    if (controller_theta::u_p > PI / 2)
+    if (theta_u_p > PI / 2)
     {
-        controller_theta::u_p = PI / 2;
+        theta_u_p = PI / 2;
     }
 
-    if (controller_theta::u_p < -PI / 2)
+    if (theta_u_p < -PI / 2)
     {
-        controller_theta::u_p = -PI / 2;
+        theta_u_p = -PI / 2;
     }
 
     // Outputs
-    controller_lineal::velocity_right = controller_lineal::u_p + 0.5 * ROBOT_LENGTH * controller_theta::u_p;
-    controller_lineal::velocity_left = controller_lineal::u_p - 0.5 * ROBOT_LENGTH * controller_theta::u_p;
+    velocity_right = lineal_u_p + 0.5 * ROBOT_LENGTH * theta_u_p;
+    velocity_left = lineal_u_p - 0.5 * ROBOT_LENGTH * theta_u_p;
+
+    char vel_r_string[8];
+    dtostrf(velocity_right, 1, 2, vel_r_string);
+    client.publish(VEL_R_TOPIC, vel_r_string);
+
+    char vel_l_string[8];
+    dtostrf(velocity_left, 1, 2, vel_l_string);
+    client.publish(VEL_L_TOPIC, vel_l_string);
 }
