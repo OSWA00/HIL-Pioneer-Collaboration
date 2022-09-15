@@ -99,24 +99,23 @@ if (clientID>-1)
     % Inicialización para obtener la orientación Robot 2
     [~, Orientation_Robot_2] = sim.simxGetObjectOrientation(clientID,Robot_block_2,-1,...
         sim.simx_opmode_streaming);
-
     %CIRCULO
 %------------------------------------------------------------------------
-[~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[0,0.7,1.3879e-01],sim.simx_opmode_oneshot);
-[~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0,1.3,1.3879e-01],sim.simx_opmode_oneshot);
-[~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,1,3],sim.simx_opmode_oneshot);
+% [~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[0,1.7,1.3879e-01],sim.simx_opmode_oneshot);
+% [~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0,2.3,1.3879e-01],sim.simx_opmode_oneshot);
+% [~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,2,3],sim.simx_opmode_oneshot); %1
 %------------------------------------------------------------------------
 
 %SENO
 %------------------------------------------------------------------------
-% [~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[-0.19,1.78,1.3879e-01],sim.simx_opmode_oneshot);
-% [~] = sim.simxSetObjectOrientation(clientID,Robot_block_1,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
-% 
-% [~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0.22,2.2,1.3879e-01],sim.simx_opmode_oneshot);
-% [~] = sim.simxSetObjectOrientation(clientID,Robot_block_2,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
-% 
-% [~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,2,3],sim.simx_opmode_oneshot);
-% [~] = sim.simxSetObjectOrientation(clientID,bar,-1,[0,0,-pi/4],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectPosition(clientID,Robot_block_1,-1,[-0.303,1.88,1.3879e-01],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,Robot_block_1,-1,[0,0,-pi*0.3],sim.simx_opmode_oneshot);
+
+[~] = sim.simxSetObjectPosition(clientID,Robot_block_2,-1,[0.238,2.194,1.3879e-01],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,Robot_block_2,-1,[0,0,-pi*0.3],sim.simx_opmode_oneshot);
+
+[~] = sim.simxSetObjectPosition(clientID,bar,-1,[0,2.04,3],sim.simx_opmode_oneshot);
+[~] = sim.simxSetObjectOrientation(clientID,bar,-1,[0,0,-pi*0.33],sim.simx_opmode_oneshot);
 %------------------------------------------------------------------------
 
 
@@ -140,36 +139,35 @@ if (clientID>-1)
 
     %CIRCULO
     %------------------------------------------------------------------------
-    t0=0.001;
-    x0=sin(0.30*(t0));
-    y0=cos(0.30*(t0));
+%     t0=0.001;
+%     x0=2*sin(0.30*(t0));
+%     y0=2*cos(0.30*(t0));
     %----------------------------------------------------------------------
     
     %SENO
     %----------------------------------------------------------------------
-%     t0=0.001;
-%     x0=sin(0.2*t0);
-%     y0=2-t0*0.2;
+    t0=0.001;
+    x0=sin(0.1*t0);
+    y0=2-t0*0.2;
     %----------------------------------------------------------------------
 
     disp("Starting simulation")
+    
     %% Simulation
-    for i = 1:200
-        %% MQTT messages
-
+    for i = 1:(400/2.5)
         %% Trajectory
         %CIRCULO
         %------------------------------------------------------------------------
-        t=0.1*(i-1); 
-        xd=sin(0.3*(t)); %x va de -2m a 2m de forma sinusoidal
-        yd=cos(0.3*(t)); %y va de 2m a -2m aumentando en 0.1
+%         t=0.1*(i)*2.5; 
+%         xd=2*sin(0.3*(t)); %x va de -2m a 2m de forma sinusoidal
+%         yd=2*cos(0.3*(t)); %y va de 2m a -2m aumentando en 0.1
         %------------------------------------------------------------------------
 
         %SENO
         %------------------------------------------------------------------------
-%         t=0.1*(i)*2; 
-%         xd=sin(0.2*t); %x va de -2m a 2m de forma sinusoidal
-%         yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
+        t=0.1*(i)*2.5; 
+        xd=sin(0.1*t); %x va de -2m a 2m de forma sinusoidal
+        yd=2-t*0.2; %y va de 2m a -2m aumentando en 1.1
         %------------------------------------------------------------------------
         
         %% Collaborative trajectory generation 
@@ -205,10 +203,10 @@ if (clientID>-1)
             Robot_block_1, -1,...
             sim.simx_opmode_buffer);
         % X pose
-        tic;
+        
         write(mqttClient, topic_robot_1_pos_x, string(Position_Robot_1(1)));
         disp("tiempo")
-        toc
+        
        
 
         % Y pose
@@ -264,7 +262,7 @@ if (clientID>-1)
             robot_2_vel_r = str2double(robot_2_vel_r_msg.Data(1));
         end
         
-        if i==1
+        if i<2
             robot_1_vel_r= 0.1;
             robot_1_vel_l = 0.1;
         
@@ -303,9 +301,26 @@ if (clientID>-1)
         scatter(xp1,yp1,'.','g')  %Gráfica de la posición del robot
         scatter(xp2,yp2,'.','r')  %Gráfica de la posición del robot
         hold on
-        %pause(0.5);
+
+
     end
 end
+
+    % Robot 1
+    % Motor izquierdo
+    [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_1,0,... 
+        sim.simx_opmode_blocking);
+    % Motor derecho
+    [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_1,0,... 
+        sim.simx_opmode_blocking);
+
+    % Robot 2
+    % Motor izquierdo
+    [~] = sim.simxSetJointTargetVelocity(clientID,left_robot_2,0,... 
+        sim.simx_opmode_blocking);
+    % Motor derecho
+    [~] = sim.simxSetJointTargetVelocity(clientID,right_robot_2,0,... 
+        sim.simx_opmode_blocking);
 
 sim.delete();
 clear mqttClient;

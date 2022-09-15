@@ -11,7 +11,7 @@
 
 // }
 
-float lineal_kp = 1.8;
+float lineal_kp = 1.7;
 float lineal_error = 0.0;
 float lineal_u_p = 0.0;
 
@@ -23,6 +23,6 @@ float lineal_u_p = 0.0;
 //     float error = 0.0;
 // }
 /* Theta variables */
-float theta_kp = 0.1;
+float theta_kp = 4;
 float theta_u_p = 0.0;
 float theta_error = 0.0;

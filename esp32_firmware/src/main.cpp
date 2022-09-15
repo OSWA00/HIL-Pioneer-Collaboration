@@ -41,7 +41,7 @@ void loop()
     client.loop();
 
     pd_controller(POS_DES_X, POS_DES_Y, POS_X, POS_Y, THETA);
-    delay(20);
+    delay(50);
 }
 
 void init_wifi()
@@ -107,27 +107,30 @@ void callback_mqtt(char *topic, byte *message, unsigned int length)
     if (String(topic) == POS_X_TOPIC)
     {
         POS_X = message_temp.toFloat();
-        Serial.println("POS_X");
+        Serial.println(POS_X);
     }
 
     if (String(topic) == POS_Y_TOPIC)
     {
         POS_Y = message_temp.toFloat();
-        Serial.println("POS_Y")
+        Serial.println(POS_Y);
     }
 
     if (String(topic) == POS_X_DESIRED_TOPIC)
     {
         POS_DES_X = message_temp.toFloat();
+        Serial.println(POS_DES_X);
     }
 
     if (String(topic) == POS_Y_DESIRED_TOPIC)
     {
         POS_DES_Y = message_temp.toFloat();
+        Serial.println(POS_DES_Y);
     }
     if (String(topic) == THETA_TOPIC)
     {
         THETA = message_temp.toFloat();
+        Serial.println(THETA);
     }
 }
 
@@ -141,7 +144,7 @@ void pd_controller(float pos_des_x, float pos_des_y, float pos_x, float pos_y, f
     float x_error = pos_x - pos_des_x;
     float y_error = pos_y - pos_des_y;
 
-    float theta_des = atan2(y_error, x_error);
+    float theta_des = atan2(-y_error, -x_error);
 
     theta_error = theta - theta_des;
 
@@ -161,9 +164,9 @@ void pd_controller(float pos_des_x, float pos_des_y, float pos_x, float pos_y, f
     theta_u_p = -theta_kp * theta_error;
 
     // Saturation
-    if (lineal_u_p > 1)
+    if (lineal_u_p > 1.2)
     {
-        lineal_u_p = 1;
+        lineal_u_p = 1.2;
     }
 
     if (theta_u_p > PI / 2)
